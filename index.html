@@ -1,0 +1,1579 @@
+<!DOCTYPE html>
+<html lang="en" style="scroll-behavior: smooth;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Created By Rajveer Singh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #000000;
+            transition: background-color 0.4s ease, color 0.4s ease;
+        }
+        #converterSection, .symbol-card, footer {
+            transition: background-color 0.4s ease, border-color 0.4s ease;
+        }
+        #converterOutput, #searchBar, #converterInput {
+            transition: background-color 0.4s ease, border-color 0.4s ease, color 0.4s ease, box-shadow 0.3s ease;
+        }
+        .symbol-display { color: #000000; }
+        #converterSection, .symbol-card {
+            background-color: #f9fafb;
+            border: 1px solid #e5e7eb;
+        }
+        #converterOutput, #searchBar, #converterInput {
+            background-color: #ffffff;
+            border: 1px solid #d1d5db;
+            color: #000000;
+        }
+        #searchBar::placeholder, #converterInput::placeholder { color: #6b7280; }
+        label, #converterNote { color: #374151; }
+        footer { border-color: #e5e7eb; color: #4b5563; }
+
+        .dark body { background-color: #000000; color: #ffffff; }
+        .dark .symbol-display { color: #ffffff; }
+        .dark #converterSection, .dark .symbol-card {
+            background-color: #111111;
+            border: 1px solid #374151;
+        }
+        .dark #converterOutput, .dark #searchBar, .dark #converterInput {
+            background-color: #1f2937;
+            border: 1px solid #4b5563;
+            color: #ffffff;
+        }
+        .dark #searchBar::placeholder, .dark #converterInput::placeholder { color: #9ca3af; }
+        .dark label, .dark #converterNote { color: #d1d5db; }
+        .dark footer { border-color: #374151; color: #9ca3af; }
+        .dark h2.text-blue-700 { color: #60a5fa; }
+        .dark p.text-indigo-700 { color: #a5b4fc; }
+
+        .symbol-card {
+            opacity: 0;
+            transform: translateY(40px) scale(0.9); 
+            position: relative;
+            transition: 
+                opacity 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                box-shadow 0.2s ease-in-out, 
+                background-color 0.2s ease-in-out, 
+                border-color 0.2s ease-in-out;
+        }
+        .symbol-card.is-visible {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+        .symbol-card:hover {
+            transform: scale(1.08) !important;
+            box-shadow: 0 25px 30px -10px rgb(0 0 0 / 0.2), 0 8px 10px -6px rgb(0 0 0 / 0.15);
+            z-index: 10;
+            background-color: #f0fdf4;
+            border-color: #22c55e;
+        }
+        .dark .symbol-card:hover {
+            box-shadow: 0 25px 30px -10px rgb(0 0 0 / 0.25), 0 8px 10px -6px rgb(0 0 0 / 0.25);
+            background-color: #14251a;
+            border-color: #4ade80;
+        }
+        .action-button {
+            transition: background-color 0.2s, transform 0.15s ease-out, color 0.2s, box-shadow 0.2s ease-out;
+        }
+        .action-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        .action-button:active {
+            transform: scale(0.97) translateY(0);
+        }
+
+        .favorite-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            color: #9ca3af;
+            cursor: pointer;
+            padding: 4px;
+            border-radius: 9999px;
+            transition: color 0.2s ease-in-out, transform 0.2s ease-in-out;
+        }
+        .favorite-btn:hover {
+            color: #f87171;
+            background-color: rgba(255, 0, 0, 0.1);
+        }
+        .favorite-btn.favorited {
+            color: #ef4444;
+            animation: blink 0.5s ease-out;
+        }
+        #favoritesToggleButton.active {
+            color: #facc15;
+            background-color: rgba(255, 255, 255, 0.25);
+        }
+
+        @keyframes blink {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1); }
+        }
+
+        .symbol-display {
+            font-size: 2.25rem; line-height: 1.1; min-height: 36px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #e2e8f0; }
+        .dark ::-webkit-scrollbar-track { background: #334155; }
+        ::-webkit-scrollbar-thumb { background: #94a3b8; border-radius: 4px; }
+        .dark ::-webkit-scrollbar-thumb { background: #64748b; }
+        
+        @keyframes fadeInOut {
+            0%, 100% { opacity: 0; transform: scale(0.95); }
+            10%, 90% { opacity: 1; transform: scale(1); }
+        }
+        .notification-fade { animation: fadeInOut 3s ease-in-out forwards; }
+        .notification-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            pointer-events: none;
+        }
+        .notification-container > div { pointer-events: auto; }
+
+        @keyframes resultFadeIn {
+            from { opacity: 0.5; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result-visible {
+            animation: resultFadeIn 0.3s ease-out;
+        }
+
+        #loadingIndicator {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.5rem; z-index: 2000; transition: opacity 0.3s;
+        }
+        #loadingIndicator { background-color: rgba(255, 255, 255, 0.85); color: #000000; }
+        .dark #loadingIndicator { background-color: rgba(0, 0, 0, 0.85); color: #ffffff; }
+        .hidden { display: none !important; }
+        .theme-switch-wrapper { display: flex; align-items: center; gap: 0.5rem; }
+        .theme-switch { display: inline-block; height: 26px; position: relative; width: 50px; }
+        .theme-switch input { display:none; }
+        .slider {
+            background-color: #4f46e5; bottom: 0; cursor: pointer; left: 0;
+            position: absolute; right: 0; top: 0; transition: .4s; border-radius: 26px;
+        }
+        .slider:before {
+            background-color: #fff; bottom: 3px; content: ""; height: 20px;
+            left: 3px; position: absolute; transition: .4s; width: 20px; border-radius: 50%;
+        }
+        input:checked + .slider { background-color: #7dd3fc; }
+        input:checked + .slider:before { transform: translateX(24px); }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="loadingIndicator">Loading Symbols, please wait...</div>
+
+    <header class="bg-gradient-to-r from-blue-700 to-blue-600 text-white p-4 shadow-lg sticky top-0 z-50">
+        <div class="container mx-auto max-w-6xl">
+            <div class="flex justify-between items-center mb-4">
+                <h1 class="text-xl sm:text-3xl font-bold">Symbols Chart</h1>
+                <div class="flex items-center gap-2 sm:gap-3">
+                    <div class="theme-switch-wrapper">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                        <label class="theme-switch" for="themeToggleCheckbox">
+                            <input type="checkbox" id="themeToggleCheckbox" />
+                            <div class="slider"></div>
+                        </label>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                    </div>
+                    <button id="favoritesToggleButton" class="action-button text-white hover:bg-white/20 p-2 rounded-full" aria-label="Show Favorites">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                    </button>
+                    <button id="resetButton" class="action-button text-white hover:bg-white/20 p-2 rounded-full" aria-label="Reset Page">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 2v6h6"/><path d="M21 12A9 9 0 0 0 6 5.3L3 8"/><path d="M21 22v-6h-6"/><path d="M3 12a9 9 0 0 0 15 6.7l3-2.7"/></svg>
+                    </button>
+                </div>
+            </div>
+            <input type="text" id="searchBar" placeholder="Search by name, symbol, or try Ctrl + /"
+                   class="w-full p-3 rounded-lg focus:ring-2 focus:ring-yellow-400 focus:border-transparent transition-shadow">
+        </div>
+    </header>
+
+    <section id="converterSection" class="container mx-auto max-w-3xl p-4 sm:p-6 mt-6 rounded-xl shadow-xl">
+        <h2 class="text-xl sm:text-2xl font-semibold text-blue-700 mb-5 text-center">Superscript & Subscript Converter</h2>
+        <div class="space-y-5">
+            <div>
+                <label for="converterInput" class="block text-sm font-medium mb-1">Enter characters to convert:</label>
+                <input type="text" id="converterInput" placeholder="2,x,y,z"
+                       class="w-full p-3 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow">
+            </div>
+            <div class="flex flex-col sm:flex-row sm:space-x-3 space-y-3 sm:space-y-0">
+                <button id="convertToSuperscript" class="action-button w-full sm:w-auto flex-1 bg-sky-500 hover:bg-sky-600 text-white font-medium py-2 px-4 rounded-lg">
+                    Convert to Superscript
+                </button>
+                <button id="convertToSubscript" class="action-button w-full sm:w-auto flex-1 bg-teal-500 hover:bg-teal-600 text-white font-medium py-2 px-4 rounded-lg">
+                    Convert to Subscript
+                </button>
+            </div>
+            <div>
+                <label for="converterOutput" class="block text-sm font-medium mb-1">Result:</label>
+                <!-- FIX: Added 'break-words' class to prevent text overflow -->
+                <div id="converterOutput" class="w-full p-3 rounded-lg min-h-[46px] break-words"></div>
+                <p id="converterNote" class="text-sm mt-1 min-h-[20px]"></p>
+            </div>
+            <button id="copyConverterOutput" class="action-button w-full sm:w-1/2 mx-auto bg-green-500 hover:bg-green-600 text-white font-medium py-2 px-4 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy Result
+            </button>
+        </div>
+    </section>
+
+    <main class="container mx-auto max-w-6xl p-4 sm:p-6 mt-6">
+        <h2 class="text-xl sm:text-2xl font-semibold text-blue-700 mb-6 text-center">Symbol Library</h2>
+        <div id="symbolGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4">
+        </div>
+        <p id="noResultsMessage" class="text-center text-xl mt-8 hidden">No symbols found matching your search.</p>
+    </main>
+
+    <div class="notification-container">
+        <div id="copyNotification" class="hidden"></div>
+    </div>
+
+    <footer class="text-center p-6 mt-10 text-sm border-t">
+        <p>Created by Rajveer Singh😎</p>
+    </footer>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const mathSymbols = [
+            { symbol: 'Α', name: 'Alpha (uppercase)' },
+            { symbol: 'α', name: 'alpha (lowercase)' },
+            { symbol: 'Β', name: 'Beta (uppercase)' },
+            { symbol: 'β', name: 'beta (lowercase)' },
+            { symbol: 'Γ', name: 'Gamma (uppercase)' },
+            { symbol: 'γ', name: 'gamma (lowercase)' },
+            { symbol: 'Δ', name: 'Delta (uppercase)' },
+            { symbol: 'δ', name: 'delta (lowercase)' },
+            { symbol: 'Ε', name: 'Epsilon (uppercase)' },
+            { symbol: 'ε', name: 'epsilon (lowercase)' },
+            { symbol: 'ϵ', name: 'epsilon (lunate/variant)' },
+            { symbol: 'Ζ', name: 'Zeta (uppercase)' },
+            { symbol: 'ζ', name: 'zeta (lowercase)' },
+            { symbol: 'Η', name: 'Eta (uppercase)' },
+            { symbol: 'η', name: 'eta (lowercase)' },
+            { symbol: 'Θ', name: 'Theta (uppercase)' },
+            { symbol: 'θ', name: 'theta (lowercase)' },
+            { symbol: 'ϑ', name: 'theta (script/variant)' },
+            { symbol: 'Ι', name: 'Iota (uppercase)' },
+            { symbol: 'ι', name: 'iota (lowercase)' },
+            { symbol: 'Κ', name: 'Kappa (uppercase)' },
+            { symbol: 'κ', name: 'kappa (lowercase)' },
+            { symbol: 'ϰ', name: 'kappa (symbol/variant)' },
+            { symbol: 'Λ', name: 'Lambda (uppercase) or ulta v' },
+            { symbol: 'λ', name: 'lambda (lowercase)' },
+            { symbol: 'Μ', name: 'Mu (uppercase)' },
+            { symbol: 'μ', name: 'mu (lowercase)' },
+            { symbol: 'Ν', name: 'Nu (uppercase)' },
+            { symbol: 'ν', name: 'nu (lowercase)' },
+            { symbol: 'Ξ', name: 'Xi (uppercase)' },
+            { symbol: 'ξ', name: 'xi (lowercase)' },
+            { symbol: 'Ο', name: 'Omicron (uppercase)' },
+            { symbol: 'ο', name: 'omicron (lowercase)' },
+            { symbol: 'Π', name: 'Pi (uppercase)' },
+            { symbol: 'π', name: 'pi (lowercase)' },
+            { symbol: 'ϖ', name: 'pi (variant/curly)' },
+            { symbol: 'Ρ', name: 'Rho (uppercase)' },
+            { symbol: 'ρ', name: 'rho (lowercase)' },
+            { symbol: 'ϱ', name: 'rho (tailed/variant)' },
+            { symbol: 'Σ', name: 'Sigma (uppercase)' },
+            { symbol: 'σ', name: 'sigma (lowercase)' },
+            { symbol: 'ς', name: 'sigma (final lowercase)' },
+            { symbol: 'Τ', name: 'Tau (uppercase)' },
+            { symbol: 'τ', name: 'tau (lowercase)' },
+            { symbol: 'Υ', name: 'Upsilon (uppercase)' },
+            { symbol: 'υ', name: 'upsilon (lowercase)' },
+            { symbol: 'Φ', name: 'Phi (uppercase)' },
+            { symbol: 'φ', name: 'phi (lowercase/straight)' },
+            { symbol: 'ϕ', name: 'phi (curly/variant)' },
+            { symbol: 'Χ', name: 'Chi (uppercase)' },
+            { symbol: 'χ', name: 'chi (lowercase)' },
+            { symbol: 'Ψ', name: 'Psi (uppercase)' },
+            { symbol: 'ψ', name: 'psi (lowercase)' },
+            { symbol: 'Ω', name: 'Omega (uppercase)' },
+            { symbol: 'ω', name: 'omega (lowercase)' },
+            { symbol: 'Ϝ', name: 'Digamma (uppercase)' },
+            { symbol: 'ϝ', name: 'digamma (lowercase)' },
+            { symbol: 'Ϟ', name: 'Koppa (uppercase)' },
+            { symbol: 'ϟ', name: 'koppa (lowercase)' },
+            { symbol: 'Ϛ', name: 'Stigma (uppercase)' },
+            { symbol: 'ϛ', name: 'stigma (lowercase)' },
+            { symbol: 'Ϻ', name: 'San (uppercase)' },
+            { symbol: 'ϻ', name: 'san (lowercase)' },
+            { symbol: 'Ϙ', name: 'Archaic Koppa (uppercase)' },
+            { symbol: 'ϙ', name: 'archaic koppa (lowercase)' },
+            { symbol: 'Ϡ', name: 'Sampi (uppercase)' },
+            { symbol: 'ϡ', name: 'sampi (lowercase)' },
+            { symbol: 'Ϸ', name: 'Sho (uppercase)' },
+            { symbol: 'ϸ', name: 'sho (lowercase)' },
+            { symbol: '϶', name: 'Reversed Lunate Epsilon' },
+            { symbol: '+', name: 'Plus Sign' },
+            { symbol: '-', name: 'Minus Sign' },
+            { symbol: '×', name: 'Multiplication Sign' },
+            { symbol: '÷', name: 'Division Sign' },
+            { symbol: '±', name: 'Plus-Minus Sign' },
+            { symbol: '∓', name: 'Minus-Plus Sign' },
+            { symbol: '/', name: 'Solidus (Slash)' },
+            { symbol: '⁄', name: 'Fraction Slash' },
+            { symbol: '⋅', name: 'Dot Operator' },
+            { symbol: '∘', name: 'Ring Operator (Composition)' },
+            { symbol: '∙', name: 'Bullet Operator' },
+            { symbol: '*', name: 'Asterisk Operator' },
+            { symbol: '∗', name: 'Low Asterisk' },
+            { symbol: '∖', name: 'Set Minus (Reverse Solidus)' },
+            { symbol: '⊕', name: 'Circled Plus (Direct Sum)' },
+            { symbol: '⊖', name: 'Circled Minus' },
+            { symbol: '⊗', name: 'Circled Times (Tensor Product)' },
+            { symbol: '⊘', name: 'Circled Division Slash' },
+            { symbol: '⊙', name: 'Circled Dot Operator' },
+            { symbol: '⊚', name: 'Circled Ring Operator' },
+            { symbol: '⊛', name: 'Circled Asterisk Operator' },
+            { symbol: '†', name: 'Dagger' },
+            { symbol: '‡', name: 'Double Dagger' },
+            { symbol: '∸', name: 'Dot Plus' },
+            { symbol: '∔', name: 'Dot Minus' },
+            { symbol: '≀', name: 'Wreath Product' },
+            { symbol: '⊓', name: 'Square Cap (Meet)' },
+            { symbol: '⊔', name: 'Square Cup (Join)' },
+            { symbol: '⧺', name: 'Double Plus' },
+            { symbol: '⧻', name: 'Triple Plus' },
+            { symbol: '⧾', name: 'Tiny' },
+            { symbol: '⧿', name: 'Small minus operator' },
+            { symbol: '⨢', name: 'Intersection with Dot' },
+            { symbol: '⨣', name: 'Union with Minus Sign' },
+            { symbol: '⨤', name: 'Union with Overbar' },
+            { symbol: '⨥', name: 'Intersection with Overbar' },
+            { symbol: '⨦', name: 'Intersection with Logical And' },
+            { symbol: '⨧', name: 'Union with Logical Or' },
+            { symbol: '⨨', name: 'Union above Intersection' },
+            { symbol: '⨩', name: 'Intersection above Union' },
+            { symbol: '⨪', name: 'Union above Bar above Intersection' },
+            { symbol: '⨫', name: 'Intersection above Bar above Union' },
+            { symbol: '⨬', name: 'Union beside and Union beside' },
+            { symbol: '⨭', name: 'Intersection beside and Intersection beside' },
+            { symbol: '⨮', name: 'Closed Union with Serifs' },
+            { symbol: '⨯', name: 'Vector or Cross Product' },
+            { symbol: '⨰', name: 'Double Square Intersection' },
+            { symbol: '⨱', name: 'Double Square Union' },
+            { symbol: '⨲', name: 'Closed Union with Serifs and Smash Product' },
+            { symbol: '⨳', name: 'Logical Or with Dot Above' },
+            { symbol: '⨴', name: 'Double Logical And' },
+            { symbol: '⨵', name: 'Double Logical Or' },
+            { symbol: '⨶', name: 'Two Intersecting Logical And' },
+            { symbol: '⨷', name: 'Two Intersecting Logical Or' },
+            { symbol: '⨸', name: 'Sloping Large Or' },
+            { symbol: '⨹', name: 'Sloping Large And' },
+            { symbol: '⨺', name: 'Logical Or Overlapping Logical And' },
+            { symbol: '⨻', name: 'Logical And with Middle Stem' },
+            { symbol: '⨼', name: 'Logical Or with Middle Stem' },
+            { symbol: '⨽', name: 'Logical And with Horizontal Dash' },
+            { symbol: '⨾', name: 'Logical Or with Horizontal Dash' },
+            { symbol: '⨿', name: 'Amalgamation or Coproduct' },
+            { symbol: '⩀', name: 'Intersection with Dot Operator' },
+            { symbol: '⦁', name: 'Z Notation Spot' },
+            { symbol: '⦸', name: 'Reverse Solidus Operator' },
+            { symbol: '⦼', name: 'Circled Reverse Solidus Operator' },
+            { symbol: '⦾', name: 'Circled White Bullet' },
+            { symbol: '⦿', name: 'Circled Bullet' },
+            { symbol: '⨀', name: 'N-ary Circled Dot Operator' },
+            { symbol: '⨁', name: 'N-ary Circled Plus Operator' },
+            { symbol: '⨂', name: 'N-ary Circled Times Operator' },
+            { symbol: '⨃', name: 'N-ary Union Operator with Dot' },
+            { symbol: '⨄', name: 'N-ary Union Operator with Plus' },
+            { symbol: '⨅', name: 'N-ary Square Intersection Operator' },
+            { symbol: '⨆', name: 'N-ary Square Union Operator' },
+            { symbol: '⨇', name: 'Two Logical And Operator' },
+            { symbol: '⨈', name: 'Two Logical Or Operator' },
+            { symbol: '⨉', name: 'N-ary Times Operator' },
+            { symbol: '⨊', name: 'Modulo Two Sum' },
+            { symbol: '⨘', name: 'Integral with Times Sign' },
+            { symbol: '⨙', name: 'Integral with Intersection' },
+            { symbol: '⨚', name: 'Integral with Union' },
+            { symbol: '∹', name: 'Excess' },
+            { symbol: '⊞', name: 'Squared Plus (Box Plus)' },
+            { symbol: '⊟', name: 'Squared Minus (Box Minus)' },
+            { symbol: '⊠', name: 'Squared Times (Box Times)' },
+            { symbol: '⊡', name: 'Squared Dot (Box Dot)' },
+            { symbol: '⊺', name: 'Alternating Sum (Intercalate)' },
+            { symbol: '⋄', name: 'Diamond Operator' },
+            { symbol: '⋆', name: 'Star Operator' },
+            { symbol: '⋇', name: 'Division Times' },
+            { symbol: '⋈', name: 'Bowtie (Natural Join)' },
+            { symbol: '=', name: 'Equals Sign' },
+            { symbol: '≠', name: 'Not Equal To' },
+            { symbol: '<', name: 'Less Than' },
+            { symbol: '>', name: 'Greater Than' },
+            { symbol: '≤', name: 'Less Than or Equal To' },
+            { symbol: '≥', name: 'Greater Than or Equal To' },
+            { symbol: '≪', name: 'Much Less Than' },
+            { symbol: '≫', name: 'Much Greater Than' },
+            { symbol: '≮', name: 'Not Less Than' },
+            { symbol: '≯', name: 'Not Greater Than' },
+            { symbol: '≰', name: 'Neither Less Than Nor Equal To' },
+            { symbol: '≱', name: 'Neither Greater Than Nor Equal To' },
+            { symbol: '≲', name: 'Less Than or Equivalent To' },
+            { symbol: '≳', name: 'Greater Than or Equivalent To' },
+            { symbol: '≶', name: 'Less-Than or Greater-Than' },
+            { symbol: '≷', name: 'Greater-Than or Less-Than' },
+            { symbol: '≈', name: 'Approximately Equal To' },
+            { symbol: '≉', name: 'Not Approximately Equal To' },
+            { symbol: '≅', name: 'Congruent To' },
+            { symbol: '≇', name: 'Neither Approximately Nor Actually Equal To' },
+            { symbol: '≌', name: 'All Equal To' },
+            { symbol: '∽', name: 'Reversed Tilde (Lazy S)' },
+            { symbol: '∝', name: 'Proportional To' },
+            { symbol: '≡', name: 'Identical To' },
+            { symbol: '≢', name: 'Not Identical To' },
+            { symbol: '≃', name: 'Asymptotically Equal To' },
+            { symbol: '≄', name: 'Not Asymptotically Equal To' },
+            { symbol: '∼', name: 'Tilde Operator (Similar to)' },
+            { symbol: '⋍', name: 'Reversed Tilde Equals' },
+            { symbol: '≖', name: 'Ring in Equal To' },
+            { symbol: '≗', name: 'Ring Equal To' },
+            { symbol: '≙', name: 'Estimates (Corresponds To)' },
+            { symbol: '≚', name: 'Equiangular To' },
+            { symbol: '≛', name: 'Star Equals' },
+            { symbol: '≜', name: 'Delta Equal To (decomposable to)' },
+            { symbol: '≟', name: 'Questioned Equal To' },
+            { symbol: '⋖', name: 'Less-than or Equal or Greater-than' },
+            { symbol: '⋗', name: 'Greater-than or Equal or Less-than' },
+            { symbol: '≺', name: 'Precedes' },
+            { symbol: '≻', name: 'Succeeds' },
+            { symbol: '≼', name: 'Precedes or Equal To' },
+            { symbol: '≽', name: 'Succeeds or Equal To' },
+            { symbol: '≾', name: 'Precedes or Equivalent To' },
+            { symbol: '≿', name: 'Succeeds or Equivalent To' },
+            { symbol: '⋞', name: 'Does Not Precede' },
+            { symbol: '⋟', name: 'Does Not Succeed' },
+            { symbol: '⋠', name: 'Does Not Precede Or Equal' },
+            { symbol: '⋡', name: 'Does Not Succeed Or Equal' },
+            { symbol: '⋦', name: 'Less-Than But Not Equivalent To' },
+            { symbol: '⋧', name: 'Greater-Than But Not Equivalent To' },
+            { symbol: '⪇', name: 'Less-Than Or Greater-Than Or Equal To' },
+            { symbol: '⪈', name: 'Greater-Than Or Less-Than Or Equal To' },
+            { symbol: '≑', name: 'Geometrically Equal To' },
+            { symbol: '≒', name: 'Approximately Equal To or the Image Of' },
+            { symbol: '≓', name: 'Image Of or Approximately Equal To' },
+            { symbol: '≔', name: 'Colon Equals' },
+            { symbol: '≕', name: 'Equals Colon' },
+            { symbol: '≘', name: 'Corresponds To' },
+            { symbol: '≝', name: 'Equal To by Definition' },
+            { symbol: '≞', name: 'Measured By' },
+            { symbol: '⋔', name: 'Between' },
+            { symbol: '∶', name: 'Ratio' },
+            { symbol: '∷', name: 'Proportion' },
+            { symbol: '∾', name: 'Inverted Lazy S (Most Positive)' },
+            { symbol: '≁', name: 'Not Tilde' },
+            { symbol: '≂', name: 'Minus Tilde' },
+            { symbol: '≆', name: 'Approximately but not Actually Equal To' },
+            { symbol: '≊', name: 'Almost Equal or Equal To' },
+            { symbol: '≋', name: 'Triple Tilde' },
+            { symbol: '≍', name: 'Equivalent To' },
+            { symbol: '≎', name: 'Geometrically Equivalent To' },
+            { symbol: '≏', name: 'Difference Between' },
+            { symbol: '≣', name: 'Strictly Equivalent To' },
+            { symbol: '≦', name: 'Less-Than Over Equal To' },
+            { symbol: '≧', name: 'Greater-Than Over Equal To' },
+            { symbol: '≨', name: 'Less-Than But Not Equal To' },
+            { symbol: '≩', name: 'Greater-Than But Not Equal To' },
+            { symbol: '≬', name: 'Between (comparison)' },
+            { symbol: '≭', name: 'Not Equivalent To' },
+            { symbol: '≸', name: 'Neither Less-Than Nor Equivalent To' },
+            { symbol: '≹', name: 'Neither Greater-Than Nor Equivalent To' },
+            { symbol: '⊀', name: 'Does Not Precede (variant)' },
+            { symbol: '⊁', name: 'Does Not Succeed (variant)' },
+            { symbol: '⊰', name: 'Precedes Under Relation' },
+            { symbol: '⊱', name: 'Succeeds Under Relation' },
+            { symbol: '⋕', name: 'Equal and Parallel To' },
+            { symbol: '⋘', name: 'Very Much Less-Than' },
+            { symbol: '⋙', name: 'Very Much Greater-Than' },
+            { symbol: '⋚', name: 'Less-than Equal to or Greater-than' },
+            { symbol: '⋛', name: 'Greater-than Equal to or Less-than' },
+            { symbol: '⋜', name: 'Equal To or Less-Than' },
+            { symbol: '⋝', name: 'Equal To or Greater-Than' },
+            { symbol: '⋨', name: 'Less-Than But Not Equivalent To (variant)' },
+            { symbol: '⋩', name: 'Greater-Than But Not Equivalent To (variant)' },
+            { symbol: '∈', name: 'Element Of or empty' },
+            { symbol: '~', name: 'Wave or lehrati nadi' },
+            { symbol: '∉', name: 'Not an Element Of' },
+            { symbol: '∋', name: 'Contains as Member' },
+            { symbol: '∌', name: 'Does Not Contain as Member' },
+            { symbol: '⊂', name: 'Subset Of' },
+            { symbol: '⊃', name: 'Superset Of' },
+            { symbol: '⊆', name: 'Subset Of or Equal To' },
+            { symbol: '⊇', name: 'Superset Of or Equal To' },
+            { symbol: '⊊', name: 'Proper Subset Of' },
+            { symbol: '⊋', name: 'Proper Superset Of' },
+            { symbol: '⊄', name: 'Not a Subset Of' },
+            { symbol: '⊅', name: 'Not a Superset Of' },
+            { symbol: '⊈', name: 'Neither a Subset Of Nor Equal To' },
+            { symbol: '⊉', name: 'Neither a Superset Of Nor Equal To' },
+            { symbol: '∪', name: 'Union' },
+            { symbol: '∩', name: 'Intersection' },
+            { symbol: '⋃', name: 'N-ary Union' },
+            { symbol: '⋂', name: 'N-ary Intersection' },
+            { symbol: '∅', name: 'Empty Set' },
+            { symbol: '∆', name: 'Symmetric Difference' },
+            { symbol: '∁', name: 'Complement' },
+            { symbol: '℘', name: 'Power Set (Script P)' },
+            { symbol: 'ℵ', name: 'Aleph (Cardinality)' },
+            { symbol: 'ℶ', name: 'Beth (Cardinality)' },
+            { symbol: 'ℷ', name: 'Gimel (Cardinality)' },
+            { symbol: 'ℸ', name: 'Hebrew Dalet (cardinality)' },
+            { symbol: 'ℕ', name: 'Natural Numbers (Blackboard)' },
+            { symbol: 'ℤ', name: 'Integers (Blackboard)' },
+            { symbol: 'ℚ', name: 'Rational Numbers (Blackboard)' },
+            { symbol: 'ℝ', name: 'Real Numbers (Blackboard)' },
+            { symbol: 'ℂ', name: 'Complex Numbers (Blackboard)' },
+            { symbol: 'ℍ', name: 'Quaternions (Blackboard)' },
+            { symbol: 'ℙ', name: 'Prime Numbers (Blackboard)' },
+            { symbol: '⋿', name: 'Z Notation Bag Membership' },
+            { symbol: '⊍', name: 'Set multiplication' },
+            { symbol: '⊎', name: 'Set union with plus' },
+            { symbol: '⋢', name: 'Not Subset of or Equal To (variant)' },
+            { symbol: '⋣', name: 'Not Superset of or Equal To (variant)' },
+            { symbol: '⋪', name: 'Subset with Dot' },
+            { symbol: '⋫', name: 'Superset with Dot' },
+            { symbol: '⟃', name: 'Open Subset' },
+            { symbol: '⟄', name: 'Open Superset' },
+            { symbol: '⦰', name: 'Reversed Empty Set' },
+            { symbol: '⦱', name: 'Empty Set with Overbar' },
+            { symbol: '⦲', name: 'Empty Set with Small Circle Above' },
+            { symbol: '⦳', name: 'Empty Set with Right Arrow Above' },
+            { symbol: '⦴', name: 'Empty Set with Left Arrow Above' },
+            { symbol: '⊌', name: 'Multiset Symbol' },
+            { symbol: '⊏', name: 'Square Image Of (Original Of)' },
+            { symbol: '⊐', name: 'Square Original Of (Image Of)' },
+            { symbol: '⊑', name: 'Square Image Of or Equal To' },
+            { symbol: '⊒', name: 'Square Original Of or Equal To' },
+            { symbol: '⊶', name: 'Original Of' },
+            { symbol: '⊷', name: 'Image Of' },
+            { symbol: '⊸', name: 'Multimap' },
+            { symbol: '⋐', name: 'Double Subset' },
+            { symbol: '⋑', name: 'Double Superset' },
+            { symbol: '⋒', name: 'Double Intersection' },
+            { symbol: '⋓', name: 'Double Union' },
+            { symbol: '⋤', name: 'Not Square Image Of or Equal To' },
+            { symbol: '⋥', name: 'Not Square Original Of or Equal To' },
+            { symbol: '⋲', name: 'Element of with Long Horizontal Stroke' },
+            { symbol: '⋳', name: 'Element of with Vertical Bar at End of Horizontal Stroke' },
+            { symbol: '⋴', name: 'Small Element of with Vertical Bar at End of Horizontal Stroke' },
+            { symbol: '⋵', name: 'Element of with Dot Above' },
+            { symbol: '⋶', name: 'Element of with Overbar' },
+            { symbol: '⋷', name: 'Small Element of with Overbar' },
+            { symbol: '⋸', name: 'Element of with Underbar' },
+            { symbol: '⋹', name: 'Element of with Two Horizontal Strokes' },
+            { symbol: '⋺', name: 'Contains with Long Horizontal Stroke' },
+            { symbol: '⋻', name: 'Contains with Vertical Bar at End of Horizontal Stroke' },
+            { symbol: '⋼', name: 'Small Contains with Vertical Bar at End of Horizontal Stroke' },
+            { symbol: '⋽', name: 'Contains with Overbar' },
+            { symbol: '⋾', name: 'Small Contains with Overbar' },
+            { symbol: '∀', name: 'For All (Universal Quantifier)' },
+            { symbol: '∃', name: 'There Exists (Existential Quantifier)' },
+            { symbol: '∄', name: 'There Does Not Exist' },
+            { symbol: '¬', name: 'Not Sign (Negation)' },
+            { symbol: '∧', name: 'Logical And (Conjunction) or Truth table' },
+            { symbol: '∨', name: 'Logical Or (Disjunction) or Truth table' },
+            { symbol: '∴', name: 'Therefore' },
+            { symbol: '∵', name: 'Because' },
+            { symbol: '⊤', name: 'Tautology (Top)' },
+            { symbol: '⊥', name: 'Contradiction (Bottom)' },
+            { symbol: '⊻', name: 'Exclusive Or (XOR)' },
+            { symbol: '⊼', name: 'Not And (NAND)' },
+            { symbol: '↑', name: 'NAND Arrow (Sheffer Stroke)' },
+            { symbol: '↓', name: 'NOR Arrow (Peirce Arrow)' },
+            { symbol: '⊨', name: 'Models (True)' },
+            { symbol: '⊭', name: 'Does Not Model (Not True)' },
+            { symbol: '⊢', name: 'Provable (Turnstile)' },
+            { symbol: '⊬', name: 'Not Provable' },
+            { symbol: '◇', name: 'Modal Operator (Possibility)' },
+            { symbol: '□', name: 'Modal Operator (Necessity)' },
+            { symbol: '⊩', name: 'Forces' },
+            { symbol: '⊮', name: 'Does Not Force' },
+            { symbol: '⊫', name: 'Double Turnstile (Models)' },
+            { symbol: '⊧', name: 'Satisfies' },
+            { symbol: '⊦', name: 'Asserts' },
+            { symbol: '⟎', name: 'Squared Logical And' },
+            { symbol: '⟏', name: 'Squared Logical Or' },
+            { symbol: '⊣', name: 'Dash (Left Tack)' },
+            { symbol: '⊪', name: 'Does Not Force (Short Left Tack variant)' },
+            { symbol: '⊯', name: 'Does Not Prove' },
+            { symbol: '⊽', name: 'Logical NOR' },
+            { symbol: '⋀', name: 'N-ary Logical AND' },
+            { symbol: '⋁', name: 'N-ary Logical OR' },
+            { symbol: '⋎', name: 'Curly Logical OR' },
+            { symbol: '⋏', name: 'Curly Logical AND' },
+            { symbol: '∫', name: 'Integral' },
+            { symbol: '∬', name: 'Double Integral' },
+            { symbol: '∭', name: 'Triple Integral' },
+            { symbol: '∮', name: 'Contour Integral' },
+            { symbol: '∯', name: 'Surface Integral' },
+            { symbol: '∰', name: 'Volume Integral' },
+            { symbol: '⨌', name: 'Quadruple Integral Operator' },
+            { symbol: '∂', name: 'Partial Derivative' },
+            { symbol: '∇', name: 'Nabla (Del)' },
+            { symbol: '∑', name: 'Summation' },
+            { symbol: '∏', name: 'Product' },
+            { symbol: '∐', name: 'Coproduct (Disjoint Union Sum)' },
+            { symbol: 'lim', name: 'Limit (text)' },
+            { symbol: 'sin', name: 'Sine (text)' },
+            { symbol: 'cos', name: 'Cosine (text)' },
+            { symbol: 'tan', name: 'Tangent (text)' },
+            { symbol: 'csc', name: 'Cosecant (text)' },
+            { symbol: 'sec', name: 'Secant (text)' },
+            { symbol: 'cot', name: 'Cotangent (text)' },
+            { symbol: 'arcsin', name: 'Inverse sine (text)' },
+            { symbol: 'arccos', name: 'Inverse cosine (text)' },
+            { symbol: 'arctan', name: 'Inverse tangent (text)' },
+            { symbol: 'sinh', name: 'Hyperbolic Sine (text)' },
+            { symbol: 'cosh', name: 'Hyperbolic Cosine (text)' },
+            { symbol: 'tanh', name: 'Hyperbolic Tangent (text)' },
+            { symbol: '∞', name: 'Infinity' },
+            { symbol: 'dy/dx', name: 'Derivative of y w.r.t x' },
+            { symbol: 'd/dx', name: 'Derivative operator' },
+            { symbol: "f'(x)", name: 'First derivative (Lagrange)' },
+            { symbol: 'f"(x)', name: 'Second derivative (Lagrange)' },
+            { symbol: 'ẏ', name: 'First derivative (Newton)' },
+            { symbol: 'ÿ', name: 'Second derivative (Newton)' },
+            { symbol: '∫̲', name: 'Integral with Underbar (Lower Riemann Sum)' },
+            { symbol: '∫̅', name: 'Integral with Overbar (Upper Riemann Sum)' },
+            { symbol: 'ℒ', name: 'Laplace Transform (Script L)' },
+            { symbol: 'ℱ', name: 'Fourier Transform (Script F)' },
+            { symbol: 'ⅆ', name: 'Differential d (double-struck italic)' },
+            { symbol: 'ⅇ', name: 'Exponential e (double-struck italic)' },
+            { symbol: 'ⅈ', name: 'Imaginary i (double-struck italic)' },
+            { symbol: 'ⅉ', name: 'Imaginary j (double-struck italic)' },
+            { symbol: '⨍', name: 'Finite Part Integral' },
+            { symbol: '⨎', name: 'Integral with Double Stroke' },
+            { symbol: '⨏', name: 'Integral Average with Slash' },
+            { symbol: '⨐', name: 'Circulation Function' },
+            { symbol: '⨑', name: 'Anticlockwise Integration' },
+            { symbol: '⨒', name: 'Line Integration with Rectangular Path Around Pole' },
+            { symbol: '⨓', name: 'Line Integration with Semicircular Path Around Pole' },
+            { symbol: '⨔', name: 'Line Integration Not Including the Pole' },
+            { symbol: '⨕', name: 'Integral Around a Point Operator' },
+            { symbol: '⨖', name: 'Quaternion Integral Operator' },
+            { symbol: '⨗', name: 'Integral with Leftwards Arrow with Hook' },
+            { symbol: '⨛', name: 'Integral with Overbar' },
+            { symbol: '⨜', name: 'Integral with Underbar' },
+            { symbol: '∱', name: 'Clockwise Integral' },
+            { symbol: '∲', name: 'Clockwise Contour Integral' },
+            { symbol: '∳', name: 'Anticlockwise Contour Integral' },
+            { symbol: '≐', name: 'Approaches the Limit' },
+            { symbol: '√', name: 'Square Root' },
+            { symbol: '∛', name: 'Cube Root' },
+            { symbol: '∜', name: 'Fourth Root' },
+            { symbol: '|x|', name: 'Absolute Value' },
+            { symbol: '!', name: 'Factorial' },
+            { symbol: '‼', name: 'Double Factorial' },
+            { symbol: 'mod', name: 'Modulo' },
+            { symbol: 'gcd', name: 'Greatest Common Divisor' },
+            { symbol: 'lcm', name: 'Least Common Multiple' },
+            { symbol: '⌈x⌉', name: 'Ceiling Function' },
+            { symbol: '⌊x⌋', name: 'Floor Function' },
+            { symbol: '⁰', name: 'Superscript Zero' },
+            { symbol: '¹', name: 'Superscript One' },
+            { symbol: '²', name: 'Superscript Two (Squared)' },
+            { symbol: '³', name: 'Superscript Three (Cubed)' },
+            { symbol: '⁴', name: 'Superscript Four' },
+            { symbol: '⁵', name: 'Superscript Five' },
+            { symbol: '⁶', name: 'Superscript Six' },
+            { symbol: '⁷', name: 'Superscript Seven' },
+            { symbol: '⁸', name: 'Superscript Eight' },
+            { symbol: '⁹', name: 'Superscript Nine' },
+            { symbol: 'ⁿ', name: 'Superscript n' },
+            { symbol: '‰', name: 'Per Mille' },
+            { symbol: '‱', name: 'Per Ten Thousand (Basis Point)' },
+            { symbol: '∣', name: 'Divides' },
+            { symbol: '∤', name: 'Does Not Divide' },
+            { symbol: '⊲', name: 'Normal Subgroup' },
+            { symbol: '⊳', name: 'Contains as Normal Subgroup' },
+            { symbol: '⊴', name: 'Normal Subgroup or Equal' },
+            { symbol: '⊵', name: 'Contains as Normal Subgroup or Equal' },
+            { symbol: '⋉', name: 'Left semi-direct product' },
+            { symbol: '⋊', name: 'Right semi-direct product' },
+            { symbol: '⋋', name: 'Reverse left semi-direct product' },
+            { symbol: '⋌', name: 'Reverse right semi-direct product' },
+            { symbol: 'Aut', name: 'Automorphism Group (text)' },
+            { symbol: 'Ker', name: 'Kernel (text)' },
+            { symbol: 'Im', name: 'Image (text)' },
+            { symbol: 'deg', name: 'Degree (text)' },
+            { symbol: '⊹', name: 'Hermitian Conjugate Matrix' },
+            { symbol: '⋬', name: 'Not Normal Subgroup Of' },
+            { symbol: '⋭', name: 'Does Not Contain As Normal Subgroup' },
+            { symbol: '∠', name: 'Angle' },
+            { symbol: '∟', name: 'Right Angle' },
+            { symbol: '∡', name: 'Measured Angle' },
+            { symbol: '⊾', name: 'Measured Angle with Right Angle Arc' },
+            { symbol: '∥', name: 'Parallel To' },
+            { symbol: '△', name: 'Triangle' },
+            { symbol: '■', name: 'Square (Filled)' },
+            { symbol: '○', name: 'Circle (Hollow)' },
+            { symbol: '●', name: 'Circle (Filled)' },
+            { symbol: '◊', name: 'Lozenge (Diamond)' },
+            { symbol: '▱', name: 'Parallelogram' },
+            { symbol: '°', name: 'Degree Sign' },
+            { symbol: '⌒', name: 'Arc' },
+            { symbol: '⌓', name: 'Segment' },
+            { symbol: '⌔', name: 'Sector' },
+            { symbol: '⊿', name: 'Right Triangle' },
+            { symbol: '⟂', name: 'Perpendicular (Orthogonal To)' },
+            { symbol: '⦛', name: 'Measured Angle Opening Left' },
+            { symbol: '⦠', name: 'Spherical Angle Opening Left' },
+            { symbol: '⦢', name: 'Turned Angle' },
+            { symbol: '⦣', name: 'Reversed Angle' },
+            { symbol: '⦤', name: 'Angle With Underbar' },
+            { symbol: '⦥', name: 'Reversed Angle With Underbar' },
+            { symbol: '⦦', name: 'Oblique Angle Opening Up' },
+            { symbol: '⦧', name: 'Oblique Angle Opening Down' },
+            { symbol: '◧', name: 'Square with Upper Left Quadrant' },
+            { symbol: '◨', name: 'Square with Lower Left Quadrant' },
+            { symbol: '◩', name: 'Square with Upper Right Quadrant' },
+            { symbol: '◪', name: 'Square with Lower Right Quadrant' },
+            { symbol: '◹', name: 'Upper Left Triangle' },
+            { symbol: '◸', name: 'Upper Right Triangle' },
+            { symbol: '◺', name: 'Lower Left Triangle' },
+            { symbol: '◻', name: 'White Medium Square' },
+            { symbol: '◼', name: 'Black Medium Square' },
+            { symbol: '◽', name: 'White Medium Small Square' },
+            { symbol: '◾', name: 'Black Medium Small Square' },
+            { symbol: '◿', name: 'Lower Right Triangle' },
+            { symbol: '⟀', name: 'Three Dimensional Angle' },
+            { symbol: '⦜', name: 'Right Angle Variant with Square' },
+            { symbol: '⦝', name: 'Measured Right Angle with Dot' },
+            { symbol: '⦞', name: 'Angle with S Inside' },
+            { symbol: '⦟', name: 'Acute Angle' },
+            { symbol: '⦡', name: 'Spherical Angle Opening Up' },
+            { symbol: '←', name: 'Left Arrow' },
+            { symbol: '→', name: 'Right Arrow' },
+            { symbol: '↔', name: 'Left Right Arrow' },
+            { symbol: '↕', name: 'Up Down Arrow' },
+            { symbol: '↖', name: 'North West Arrow' },
+            { symbol: '↗', name: 'North East Arrow' },
+            { symbol: '↘', name: 'South East Arrow' },
+            { symbol: '↙', name: 'South West Arrow' },
+            { symbol: '↚', name: 'Left Arrow with Stroke' },
+            { symbol: '↛', name: 'Right Arrow with Stroke' },
+            { symbol: '↜', name: 'Left Wave Arrow' },
+            { symbol: '↝', name: 'Right Wave Arrow' },
+            { symbol: '↞', name: 'Left Two Headed Arrow' },
+            { symbol: '↠', name: 'Right Two Headed Arrow' },
+            { symbol: '↩', name: 'Leftwards Arrow with Hook' },
+            { symbol: '↪', name: 'Rightwards Arrow with Hook' },
+            { symbol: '↼', name: 'Leftwards Harpoon with Barb Upwards' },
+            { symbol: '⇀', name: 'Rightwards Harpoon with Barb Upwards' },
+            { symbol: '↽', name: 'Leftwards Harpoon with Barb Downwards' },
+            { symbol: '⇁', name: 'Rightwards Harpoon with Barb Downwards' },
+            { symbol: '⇌', name: 'Rightwards Harpoon over Leftwards Harpoon (Equilibrium)' },
+            { symbol: '⇐', name: 'Left Double Arrow' },
+            { symbol: '⇑', name: 'Up Double Arrow' },
+            { symbol: '⇒', name: 'Right Double Arrow (Implies)' },
+            { symbol: '⇓', name: 'Down Double Arrow' },
+            { symbol: '⇔', name: 'Left Right Double Arrow (If and only if)' },
+            { symbol: '↦', name: 'Maps To (Right Arrow from Bar)' },
+            { symbol: '↤', name: 'Left Arrow from Bar (Maps From)' },
+            { symbol: '⇋', name: 'Left Harpoon over Right Harpoon' },
+            { symbol: '⇉', name: 'Right Paired Arrows' },
+            { symbol: '⇇', name: 'Left Paired Arrows' },
+            { symbol: '⇝', name: 'Right Squiggly Arrow' },
+            { symbol: '⇜', name: 'Left Squiggly Arrow' },
+            { symbol: '⟵', name: 'Long Left Arrow' },
+            { symbol: '⟶', name: 'Long Right Arrow' },
+            { symbol: '⟷', name: 'Long Left Right Arrow' },
+            { symbol: '⟹', name: 'Long Right Double Arrow' },
+            { symbol: '⟺', name: 'Long Left Right Double Arrow' },
+            { symbol: '↺', name: 'Anticlockwise Open Circle Arrow' },
+            { symbol: '↻', name: 'Clockwise Open Circle Arrow' },
+            { symbol: '⇚', name: 'Left Triple Arrow' },
+            { symbol: '⇛', name: 'Right Triple Arrow' },
+            { symbol: '⇆', name: 'Left Arrow over Right Arrow' },
+            { symbol: '⇄', name: 'Right Arrow over Left Arrow' },
+            { symbol: '↿', name: 'Upwards Harpoon with Barb Rightwards' },
+            { symbol: '↾', name: 'Upwards Harpoon with Barb Leftwards' },
+            { symbol: '⇃', name: 'Downwards Harpoon with Barb Rightwards' },
+            { symbol: '⇂', name: 'Downwards Harpoon with Barb Leftwards' },
+            { symbol: '￩', name: 'Leftwards Dashed Arrow' },
+            { symbol: '￫', name: 'Rightwards Dashed Arrow' },
+            { symbol: '⇍', name: 'Leftwards Double Arrow with Stroke' },
+            { symbol: '⇏', name: 'Rightwards Double Arrow with Stroke' },
+            { symbol: '⇕', name: 'Up Down Double Arrow' },
+            { symbol: '🠀', name: 'Leftwards Arrow with Triangle Arrowhead' },
+            { symbol: '🠁', name: 'Upwards Arrow with Triangle Arrowhead' },
+            { symbol: '🠂', name: 'Rightwards Arrow with Triangle Arrowhead' },
+            { symbol: '🠃', name: 'Downwards Arrow with Triangle Arrowhead' },
+            { symbol: '🠄', name: 'Left Right Arrow with Triangle Arrowhead' },
+            { symbol: '🠅', name: 'Up Down Arrow with Triangle Arrowhead' },
+            { symbol: '⟰', name: 'Upwards Quadruple Arrow' },
+            { symbol: '⟱', name: 'Downwards Quadruple Arrow' },
+            { symbol: '⟲', name: 'Anticlockwise Gapped Circle Arrow' },
+            { symbol: '⟳', name: 'Clockwise Gapped Circle Arrow' },
+            { symbol: '⟴', name: 'Right Arrow with Circled Plus' },
+            { symbol: '⤀', name: 'Rightwards Two-Headed Arrow with Vertical Stroke' },
+            { symbol: '⤁', name: 'Rightwards Two-Headed Arrow with Double Vertical Stroke' },
+            { symbol: '⤂', name: 'Leftwards Double Arrow with Vertical Stroke' },
+            { symbol: '⤃', name: 'Rightwards Double Arrow with Vertical Stroke' },
+            { symbol: '⤄', name: 'Left Right Double Arrow with Vertical Stroke' },
+            { symbol: '⤅', name: 'Rightwards Two-Headed Arrow from Bar' },
+            { symbol: '⤈', name: 'Downwards Arrow with Horizontal Stroke' },
+            { symbol: '⤉', name: 'Upwards Triple Arrow' },
+            { symbol: '⤊', name: 'Downwards Triple Arrow' },
+            { symbol: '⤋', name: 'Leftwards Double Dash Arrow' },
+            { symbol: '⤌', name: 'Rightwards Double Dash Arrow' },
+            { symbol: '⤍', name: 'Leftwards Triple Dash Arrow' },
+            { symbol: '⤎', name: 'Rightwards Triple Dash Arrow' },
+            { symbol: '⤏', name: 'Rightwards Two-Headed Triple Dash Arrow' },
+            { symbol: '⤐', name: 'Rightwards Arrow with Dotted Stem' },
+            { symbol: '𝐀', name: 'Mathematical Bold Capital A' },
+            { symbol: '𝐁', name: 'Mathematical Bold Capital B' },
+            { symbol: '𝐙', name: 'Mathematical Bold Capital Z' },
+            { symbol: '𝐚', name: 'Mathematical Bold Small a' },
+            { symbol: '𝐳', name: 'Mathematical Bold Small z' },
+            { symbol: '𝐴', name: 'Mathematical Italic Capital A' },
+            { symbol: '𝑍', name: 'Mathematical Italic Capital Z' },
+            { symbol: '𝑎', name: 'Mathematical Italic Small a' },
+            { symbol: '𝑔', name: 'Mathematical Italic Small g' },
+            { symbol: '𝑖', name: 'Mathematical Italic Small i' },
+            { symbol: '𝑧', name: 'Mathematical Italic Small z' },
+            { symbol: '𝑨', name: 'Mathematical Bold Italic Capital A' },
+            { symbol: '𝒁', name: 'Mathematical Bold Italic Capital Z' },
+            { symbol: '𝒂', name: 'Mathematical Bold Italic Small a' },
+            { symbol: '𝒛', name: 'Mathematical Bold Italic Small z' },
+            { symbol: '𝒜', name: 'Mathematical Script Capital A' },
+            { symbol: '𝒵', name: 'Mathematical Script Capital Z' },
+            { symbol: '𝒶', name: 'Mathematical Script Small a' },
+            { symbol: '𝓏', name: 'Mathematical Script Small z' },
+            { symbol: '𝓐', name: 'Mathematical Bold Script Capital A' },
+            { symbol: '𝓩', name: 'Mathematical Bold Script Capital Z' },
+            { symbol: '𝓪', name: 'Mathematical Bold Script Small a' },
+            { symbol: '𝔃', name: 'Mathematical Bold Script Small z' },
+            { symbol: '𝔄', name: 'Mathematical Fraktur Capital A' },
+            { symbol: '𝔜', name: 'Mathematical Fraktur Capital Y' },
+            { symbol: '𝔞', name: 'Mathematical Fraktur Small a' },
+            { symbol: '𝔷', name: 'Mathematical Fraktur Small z' },
+            { symbol: '𝔸', name: 'Mathematical Double-Struck Capital A' },
+            { symbol: '𝕐', name: 'Mathematical Double-Struck Capital Y' },
+            { symbol: '𝕒', name: 'Mathematical Double-Struck Small a' },
+            { symbol: '𝕫', name: 'Mathematical Double-Struck Small z' },
+            { symbol: '𝕬', name: 'Mathematical Bold Fraktur Capital A' },
+            { symbol: '𝖅', name: 'Mathematical Bold Fraktur Capital Z' },
+            { symbol: '𝖆', name: 'Mathematical Bold Fraktur Small a' },
+            { symbol: '𝖟', name: 'Mathematical Bold Fraktur Small z' },
+            { symbol: '𝖠', name: 'Mathematical Sans-Serif Capital A' },
+            { symbol: '𝖹', name: 'Mathematical Sans-Serif Capital Z' },
+            { symbol: '𝖺', name: 'Mathematical Sans-Serif Small a' },
+            { symbol: '𝗓', name: 'Mathematical Sans-Serif Small z' },
+            { symbol: '𝗔', name: 'Mathematical Sans-Serif Bold Capital A' },
+            { symbol: '𝗭', name: 'Mathematical Sans-Serif Bold Capital Z' },
+            { symbol: '𝗮', name: 'Mathematical Sans-Serif Bold Small a' },
+            { symbol: '𝘇', name: 'Mathematical Sans-Serif Bold Small z' },
+            { symbol: '𝘈', name: 'Mathematical Sans-Serif Italic Capital A' },
+            { symbol: '𝘡', name: 'Mathematical Sans-Serif Italic Capital Z' },
+            { symbol: '𝘢', name: 'Mathematical Sans-Serif Italic Small a' },
+            { symbol: '𝘻', name: 'Mathematical Sans-Serif Italic Small z' },
+            { symbol: '𝘼', name: 'Mathematical Sans-Serif Bold Italic Capital A' },
+            { symbol: '�', name: 'Mathematical Sans-Serif Bold Italic Capital Z' },
+            { symbol: '𝙖', name: 'Mathematical Sans-Serif Bold Italic Small a' },
+            { symbol: '𝙯', name: 'Mathematical Sans-Serif Bold Italic Small z' },
+            { symbol: '𝙰', name: 'Mathematical Monospace Capital A' },
+            { symbol: '𝚉', name: 'Mathematical Monospace Capital Z' },
+            { symbol: '𝚊', name: 'Mathematical Monospace Small a' },
+            { symbol: '𝚣', name: 'Mathematical Monospace Small z' },
+            { symbol: '𝟎', name: 'Mathematical Bold Digit Zero' },
+            { symbol: '𝟗', name: 'Mathematical Bold Digit Nine' },
+            { symbol: '𝟘', name: 'Mathematical Double-Struck Digit Zero' },
+            { symbol: '𝟙', name: 'Mathematical Double-Struck Digit One' },
+            { symbol: '𝟚', name: 'Mathematical Double-Struck Digit Two' },
+            { symbol: '𝟛', name: 'Mathematical Double-Struck Digit Three' },
+            { symbol: '𝟜', name: 'Mathematical Double-Struck Digit Four' },
+            { symbol: '𝟝', name: 'Mathematical Double-Struck Digit Five' },
+            { symbol: '𝟞', name: 'Mathematical Double-Struck Digit Six' },
+            { symbol: '𝟟', name: 'Mathematical Double-Struck Digit Seven' },
+            { symbol: '𝟠', name: 'Mathematical Double-Struck Digit Eight' },
+            { symbol: '𝟡', name: 'Mathematical Double-Struck Digit Nine' },
+            { symbol: '𝟢', name: 'Mathematical Sans-Serif Digit Zero' },
+            { symbol: '𝟫', name: 'Mathematical Sans-Serif Digit Nine' },
+            { symbol: '𝟬', name: 'Mathematical Sans-Serif Bold Digit Zero' },
+            { symbol: '𝟵', name: 'Mathematical Sans-Serif Bold Digit Nine' },
+            { symbol: '𝟶', name: 'Mathematical Monospace Digit Zero' },
+            { symbol: '𝟿', name: 'Mathematical Monospace Digit Nine' },
+            { symbol: '℀', name: 'Account Of' },
+            { symbol: '℁', name: 'Addressed to the Subject' },
+            { symbol: '℃', name: 'Degree Celsius' },
+            { symbol: '℄', name: 'Centre Line Symbol' },
+            { symbol: '℅', name: 'Care Of' },
+            { symbol: '℆', name: 'Each One' },
+            { symbol: 'ℇ', name: 'Euler Constant' },
+            { symbol: '℈', name: 'Scruple' },
+            { symbol: '℉', name: 'Degree Fahrenheit' },
+            { symbol: 'ℊ', name: 'Script Small G' },
+            { symbol: 'ℋ', name: 'Script Capital H' },
+            { symbol: 'ℌ', name: 'Black-Letter Capital H' },
+            { symbol: 'ℎ', name: 'Planck Constant' },
+            { symbol: 'ℏ', name: 'Planck Constant Over Two Pi' },
+            { symbol: 'ℐ', name: 'Script Capital I' },
+            { symbol: 'ℑ', name: 'Black-Letter Capital I' },
+            { symbol: 'ℓ', name: 'Script Small L (Liter)' },
+            { symbol: '℔', name: 'L B Bar Symbol' },
+            { symbol: '№', name: 'Numero Sign' },
+            { symbol: '℗', name: 'Sound Recording Copyright' },
+            { symbol: 'ℛ', name: 'Script Capital R' },
+            { symbol: 'ℜ', name: 'Black-Letter Capital R' },
+            { symbol: '℞', name: 'Prescription Take' },
+            { symbol: '℟', name: 'Response' },
+            { symbol: '℠', name: 'Service Mark' },
+            { symbol: '℡', name: 'Telephone Sign' },
+            { symbol: '™', name: 'Trade Mark Sign' },
+            { symbol: '℣', name: 'Versicle' },
+            { symbol: '℥', name: 'Ounce Sign' },
+            { symbol: 'Ω', name: 'Ohm Sign' },
+            { symbol: '℧', name: 'Inverted Ohm Sign' },
+            { symbol: 'ℨ', name: 'Black-Letter Capital Z' },
+            { symbol: '℩', name: 'Turned Greek Small Letter Iota' },
+            { symbol: 'K', name: 'Kelvin Sign' },
+            { symbol: 'Å', name: 'Angstrom Sign' },
+            { symbol: 'ℬ', name: 'Script Capital B' },
+            { symbol: 'ℭ', name: 'Black-Letter Capital C' },
+            { symbol: '℮', name: 'Estimated Symbol' },
+            { symbol: 'ℯ', name: 'Script Small E' },
+            { symbol: 'ℰ', name: 'Script Capital E' },
+            { symbol: 'Ⅎ', name: 'Turned Capital F' },
+            { symbol: 'ℳ', name: 'Script Capital M' },
+            { symbol: 'ℴ', name: 'Script Small O' },
+            { symbol: 'ℹ', name: 'Information Source' },
+            { symbol: '℺', name: 'Rotated Capital Q' },
+            { symbol: '℻', name: 'Fax Sign' },
+            { symbol: 'ℼ', name: 'Double-Struck Small Pi' },
+            { symbol: 'ℽ', name: 'Double-Struck Small Gamma' },
+            { symbol: 'ℾ', name: 'Double-Struck Capital Gamma' },
+            { symbol: 'ℿ', name: 'Double-Struck Capital Pi' },
+            { symbol: '⅀', name: 'Double-Struck N-Ary Summation' },
+            { symbol: '⅁', name: 'Turned Sans-Serif Capital G' },
+            { symbol: '⅂', name: 'Turned Sans-Serif Capital L' },
+            { symbol: '⅃', name: 'Reversed Sans-Serif Capital L' },
+            { symbol: '⅄', name: 'Turned Sans-Serif Capital Y' },
+            { symbol: 'ⅅ', name: 'Double-Struck Italic Capital D' },
+            { symbol: '⅊', name: 'Property Line' },
+            { symbol: '⅋', name: 'Turned Ampersand' },
+            { symbol: '⅌', name: 'Per Sign' },
+            { symbol: 'ⅎ', name: 'Turned Small F' },
+            { symbol: '$', name: 'Dollar Sign' },
+            { symbol: '¢', name: 'Cent Sign' },
+            { symbol: '£', name: 'Pound Sign' },
+            { symbol: '¤', name: 'Currency Sign (Generic)' },
+            { symbol: '¥', name: 'Yen Sign / Yuan Sign' },
+            { symbol: '€', name: 'Euro Sign' },
+            { symbol: '₹', name: 'Indian Rupee Sign' },
+            { symbol: '₩', name: 'Won Sign (Korean)' },
+            { symbol: '₽', name: 'Ruble Sign (Russian)' },
+            { symbol: '₺', name: 'Lira Sign (Turkish)' },
+            { symbol: '฿', name: 'Baht Sign (Thai)' },
+            { symbol: '₫', name: 'Dong Sign (Vietnamese)' },
+            { symbol: '₲', name: 'Guarani Sign (Paraguayan)' },
+            { symbol: '₴', name: 'Hryvnia Sign (Ukrainian)' },
+            { symbol: '₱', name: 'Peso Sign (Philippine)' },
+            { symbol: '₪', name: 'New Sheqel Sign (Israeli)' },
+            { symbol: '₸', name: 'Tenge Sign (Kazakhstan)' },
+            { symbol: '₿', name: 'Bitcoin Sign' },
+            { symbol: '؋', name: 'Afghani Sign (Afghanistan)' },
+            { symbol: '֏', name: 'Armenian Dram Sign' },
+            { symbol: '₼', name: 'Azerbaijani Manat Sign' },
+            { symbol: '৳', name: 'Bengali Taka Sign (Bangladesh)' },
+            { symbol: 'R$', name: 'Brazilian Real Sign' },
+            { symbol: '៛', name: 'Khmer Riel Sign (Cambodia)' },
+            { symbol: '₡', name: 'Colon Sign (Costa Rica and El Salvador)' },
+            { symbol: 'ƒ', name: 'Florin/Guilder Sign (Aruba, Curaçao)' },
+            { symbol: '₾', name: 'Georgian Lari Sign' },
+            { symbol: '₵', name: 'Ghana Cedi Sign' },
+            { symbol: 'Rp', name: 'Indonesian Rupiah Sign' },
+            { symbol: '﷼', name: 'Iranian Rial Sign' },
+            { symbol: '₭', name: 'Lao Kip Sign' },
+            { symbol: 'RM', name: 'Malaysian Ringgit Sign' },
+            { symbol: '₮', name: 'Mongolian Tugrik Sign' },
+            { symbol: '₦', name: 'Nigerian Naira Sign' },
+            { symbol: 'zł', name: 'Polish Zloty Sign' },
+            { symbol: '₨', name: 'Generic Rupee Sign' },
+            { symbol: 'CHF', name: 'Swiss Franc Sign' },
+            { symbol: 'د.إ', name: 'UAE Dirham Sign' },
+            { symbol: 'A$', name: 'Australian Dollar Sign' },
+            { symbol: 'CA$', name: 'Canadian Dollar Sign' },
+            { symbol: 'NT$', name: 'New Taiwan Dollar Sign' },
+            { symbol: 'kr', name: 'Krona/Krone Sign (Scandinavia, Iceland)' },
+            { symbol: 'Kč', name: 'Czech Koruna Sign' },
+            { symbol: 'Ft', name: 'Hungarian Forint Sign' },
+            { symbol: 'лв', name: 'Bulgarian Lev Sign' },
+            { symbol: '₠', name: 'Euro-Currency Sign (ECU)' },
+            { symbol: '₢', name: 'Cruzeiro Sign' },
+            { symbol: '₣', name: 'French Franc Sign' },
+            { symbol: '₤', name: 'Lira Sign (Italian)' },
+            { symbol: '₥', name: 'Mill Sign' },
+            { symbol: '₧', name: 'Peseta Sign' },
+            { symbol: '₯', name: 'Drachma Sign' },
+            { symbol: '₰', name: 'German Penny Sign' },
+            { symbol: '₳', name: 'Austral Sign' },
+            { symbol: '₶', name: 'Livre currency sign' },
+            { symbol: '₷', name: 'Esperanto currency sign' },
+            { symbol: '₻', name: 'Nordic Mark Sign' },
+            { symbol: '⃀', name: 'Som Sign' },
+            { symbol: 'm', name: 'Meter (length)' },
+            { symbol: 'kg', name: 'Kilogram (mass)' },
+            { symbol: 's', name: 'Second (time)' },
+            { symbol: 'A', name: 'Ampere (electric current)' },
+            { symbol: 'K', name: 'Kelvin (temperature)' },
+            { symbol: 'mol', name: 'Mole (amount of substance)' },
+            { symbol: 'cd', name: 'Candela (luminous intensity)' },
+            { symbol: 'Hz', name: 'Hertz (frequency)' },
+            { symbol: 'N', name: 'Newton (force)' },
+            { symbol: 'Pa', name: 'Pascal (pressure)' },
+            { symbol: 'J', name: 'Joule (energy, work)' },
+            { symbol: 'W', name: 'Watt (power)' },
+            { symbol: 'C', name: 'Coulomb (electric charge)' },
+            { symbol: 'V', name: 'Volt (electric potential)' },
+            { symbol: 'F', name: 'Farad (capacitance)' },
+            { symbol: 'S', name: 'Siemens (electric conductance)' },
+            { symbol: 'Wb', name: 'Weber (magnetic flux)' },
+            { symbol: 'T', name: 'Tesla (magnetic flux density)' },
+            { symbol: 'H', name: 'Henry (inductance)' },
+            { symbol: 'lm', name: 'Lumen (luminous flux)' },
+            { symbol: 'lx', name: 'Lux (illuminance)' },
+            { symbol: 'Bq', name: 'Becquerel (radioactivity)' },
+            { symbol: 'Gy', name: 'Gray (absorbed dose of radiation)' },
+            { symbol: 'Sv', name: 'Sievert (equivalent dose of radiation)' },
+            { symbol: 'kat', name: 'Katal (catalytic activity)' },
+            { symbol: 'rad', name: 'Radian (plane angle)' },
+            { symbol: 'sr', name: 'Steradian (solid angle)' },
+            { symbol: 'eV', name: 'Electronvolt (energy)' },
+            { symbol: 'u', name: 'Atomic Mass Unit' },
+            { symbol: 'Da', name: 'Dalton (mass)' },
+            { symbol: 'L', name: 'Liter (volume)' },
+            { symbol: 'min', name: 'Minute (time)' },
+            { symbol: 'h', name: 'Hour (time)' },
+            { symbol: 'd', name: 'Day (time)' },
+            { symbol: 'ha', name: 'Hectare (area)' },
+            { symbol: 'bar', name: 'Bar (pressure)' },
+            { symbol: 'atm', name: 'Atmosphere (pressure)' },
+            { symbol: 'cal', name: 'Calorie (energy)' },
+            { symbol: 'dB', name: 'Decibel (ratio)' },
+            { symbol: 'ly', name: 'Light-year (length)' },
+            { symbol: 'pc', name: 'Parsec (length)' },
+            { symbol: 'au', name: 'Astronomical Unit (length)' },
+            { symbol: '⌀', name: 'Diameter Sign' },
+            { symbol: '⌂', name: 'House' },
+            { symbol: '⌠', name: 'Top Half Integral' },
+            { symbol: '⌡', name: 'Bottom Half Integral' },
+            { symbol: '⌇', name: 'Wavy Line' },
+            { symbol: '⌗', name: 'Data display square' },
+            { symbol: '⌐', name: 'Reversed Not Sign' },
+            { symbol: '⌙', name: 'Turned Not Sign' },
+            { symbol: '⌘', name: 'Place of Interest Sign (Command Key)' },
+            { symbol: '⏏', name: 'Eject Symbol' },
+            { symbol: '⏯', name: 'Play/Pause Symbol' },
+            { symbol: '⏹', name: 'Stop Symbol' },
+            { symbol: '⏺', name: 'Record Symbol' },
+            { symbol: '⏚', name: 'Earth Ground Symbol' },
+            { symbol: '⌥', name: 'Option Key Symbol' },
+            { symbol: '⌦', name: 'Delete Key Symbol' },
+            { symbol: '∿', name: 'Sine Wave' },
+            { symbol: '⌕', name: 'Telephone Recorder' },
+            { symbol: '⌨', name: 'Keyboard' },
+            { symbol: '⌫', name: 'Erase to the Left (Backspace)' },
+            { symbol: '⌵', name: 'Viewdata Square' },
+            { symbol: '⏎', name: 'Return Symbol (Enter Key)' },
+            { symbol: '⏍', name: 'Power Symbol (IEC 5009)' },
+            { symbol: '⏻', name: 'Power On-Off Symbol (IEC 5010)' },
+            { symbol: '⏾', name: 'Power Sleep Symbol' },
+            { symbol: '␀', name: 'Symbol For Null' },
+            { symbol: '␁', name: 'Symbol For Start of Heading' },
+            { symbol: '␂', name: 'Symbol For Start of Text' },
+            { symbol: '␃', name: 'Symbol For End of Text' },
+            { symbol: '␄', name: 'Symbol For End of Transmission' },
+            { symbol: '␤', name: 'Symbol For Newline' },
+            { symbol: '␣', name: 'Open Box (Space Symbol)' },
+            { symbol: '␠', name: 'Symbol For Space (alternative)' },
+            { symbol: '␡', name: 'Symbol For Delete' },
+            { symbol: '(', name: 'Left Parenthesis' },
+            { symbol: ')', name: 'Right Parenthesis' },
+            { symbol: '[', name: 'Left Square Bracket' },
+            { symbol: ']', name: 'Right Square Bracket' },
+            { symbol: '{', name: 'Left Curly Brace' },
+            { symbol: '}', name: 'Right Curly Brace' },
+            { symbol: '⟨', name: 'Left Angle Bracket (Bra)' },
+            { symbol: '⟩', name: 'Right Angle Bracket (Ket)' },
+            { symbol: '⌈', name: 'Left Ceiling' },
+            { symbol: '⌉', name: 'Right Ceiling' },
+            { symbol: '⌊', name: 'Left Floor' },
+            { symbol: '⌋', name: 'Right Floor' },
+            { symbol: '|', name: 'Vertical Line (Divides, Cardinality)' },
+            { symbol: '‖', name: 'Double Vertical Line (Norm)' },
+            { symbol: ':', name: 'Colon' },
+            { symbol: ';', name: 'Semicolon' },
+            { symbol: ',', name: 'Comma' },
+            { symbol: '.', name: 'Period / Full Stop' },
+            { symbol: '...', name: 'Horizontal Ellipsis' },
+            { symbol: '⋮', name: 'Vertical Ellipsis' },
+            { symbol: '⋯', name: 'Midline Horizontal Ellipsis' },
+            { symbol: '⋱', name: 'Down Right Diagonal Ellipsis' },
+            { symbol: '⋰', name: 'Up Right Diagonal Ellipsis' },
+            { symbol: '′', name: 'Prime / Minute' },
+            { symbol: '″', name: 'Double Prime / Second' },
+            { symbol: '‴', name: 'Triple Prime' },
+            { symbol: '‵', name: 'Reversed Prime' },
+            { symbol: '∎', name: 'End of Proof (QED)' },
+            { symbol: 'ı', name: 'Latin small letter i without dot' },
+            { symbol: 'ȷ', name: 'Latin small letter j without dot' },
+            { symbol: '✓', name: 'Check Mark' },
+            { symbol: '✗', name: 'Ballot X (Cross Mark)' },
+            { symbol: '∺', name: 'Geometric Proportion' },
+            { symbol: '∻', name: 'Homothety symbol' },
+            { symbol: '⌢', name: 'Frown (Arc Concave Upwards)' },
+            { symbol: '⌣', name: 'Smile (Arc Concave Downwards)' },
+            { symbol: '♯', name: 'Sharp Sign (Number Sign variant)' },
+            { symbol: '♭', name: 'Flat Sign' },
+            { symbol: '♮', name: 'Natural Sign' },
+            { symbol: '§', name: 'Section Sign' },
+            { symbol: '¶', name: 'Paragraph sign' },
+            { symbol: '©', name: 'Copyright Sign' },
+            { symbol: '®', name: 'Registered Sign' },
+            { symbol: '⟅', name: 'Left S-Shaped Bag Delimiter' },
+            { symbol: '⟆', name: 'Right S-Shaped Bag Delimiter' },
+            { symbol: '⟦', name: 'Mathematical Left White Square Bracket' },
+            { symbol: '⟧', name: 'Mathematical Right White Square Bracket' },
+            { symbol: '⟪', name: 'Mathematical Left Double Angle Bracket' },
+            { symbol: '⟫', name: 'Mathematical Right Double Angle Bracket' },
+            { symbol: '⟬', name: 'Mathematical Left White Tortoise Shell Bracket' },
+            { symbol: '⟭', name: 'Mathematical Right White Tortoise Shell Bracket' },
+            { symbol: '⟮', name: 'Mathematical Left Flattened Parenthesis' },
+            { symbol: '⟯', name: 'Mathematical Right Flattened Parenthesis' },
+            { symbol: '⦃', name: 'Left White Curly Bracket' },
+            { symbol: '⦄', name: 'Right White Curly Bracket' },
+            { symbol: '⦅', name: 'Left White Parenthesis' },
+            { symbol: '⦆', name: 'Right White Parenthesis' },
+            { symbol: '⨋', name: 'Summation with Integral' },
+            { symbol: '∊', name: 'Small Element Of' },
+            { symbol: '∍', name: 'Small Contains As Member' },
+            { symbol: '∢', name: 'Spherical Angle' },
+            { symbol: '≴', name: 'Neither Less-Than Nor Equivalent To (variant)' },
+            { symbol: '≵', name: 'Neither Greater-Than Nor Equivalent To (variant)' },
+            { symbol: '∦', name: 'Not Parallel To' },
+            { symbol: 'ϯ', name: 'Greek Small Letter Stigma Digamma' },
+            { symbol: 'ϱ', name: 'Greek Small Letter Rho With Stroke' },
+            { symbol: 'ϴ', name: 'Greek Capital Theta Symbol' },
+            { symbol: '϶', name: 'Greek Reversed Lunate Epsilon Symbol' },
+            { symbol: '⁒', name: 'Commercial Minus Sign' },
+            { symbol: '⅊', name: 'Property Line' },
+            { symbol: '⅋', name: 'Turned Ampersand' },
+            { symbol: '⅌', name: 'Per Sign' },
+            { symbol: '⅍', name: 'Aktieselskab' },
+            { symbol: 'ⅎ', name: 'Turned Small F' },
+            { symbol: '↮', name: 'Left Right Arrow With Stroke' },
+            { symbol: '⇎', name: 'Left Right Double Arrow With Stroke' },
+            { symbol: '⇏', name: 'Rightwards Double Arrow With Stroke' },
+            { symbol: '⇴', name: 'Right Arrow With Small Circle' },
+            { symbol: '⇵', name: 'Downwards Arrow Leftwards Of Upwards Arrow' },
+            { symbol: '⇶', name: 'Three Rightwards Arrows' },
+            { symbol: '⇷', name: 'Leftwards Arrow With Vertical Stroke' },
+            { symbol: '⇸', name: 'Rightwards Arrow With Vertical Stroke' },
+            { symbol: '⇹', name: 'Left Right Arrow With Vertical Stroke' },
+            { symbol: '⇺', name: 'Leftwards Arrow With Double Vertical Stroke' },
+            { symbol: '⇻', name: 'Rightwards Arrow With Double Vertical Stroke' },
+            { symbol: '⇼', name: 'Left Right Arrow With Double Vertical Stroke' },
+            { symbol: '⇽', name: 'Leftwards Open-Headed Arrow' },
+            { symbol: '⇾', name: 'Rightwards Open-Headed Arrow' },
+            { symbol: '⇿', name: 'Left Right Open-Headed Arrow' },
+            { symbol: '𝚨', name: 'Mathematical Bold Capital Alpha' },
+            { symbol: '𝚩', name: 'Mathematical Bold Capital Beta' },
+            { symbol: '𝚪', name: 'Mathematical Bold Capital Gamma' },
+            { symbol: '𝚫', name: 'Mathematical Bold Capital Delta' },
+            { symbol: '𝚬', name: 'Mathematical Bold Capital Epsilon' },
+            { symbol: '𝛂', name: 'Mathematical Bold Small Alpha' },
+            { symbol: '𝛃', name: 'Mathematical Bold Small Beta' },
+            { symbol: '𝛄', name: 'Mathematical Bold Small Gamma' },
+            { symbol: '𝛅', name: 'Mathematical Bold Small Delta' },
+            { symbol: '𝛆', name: 'Mathematical Bold Small Epsilon' },
+            { symbol: '𝛢', name: 'Mathematical Italic Capital Alpha' },
+            { symbol: '𝛣', name: 'Mathematical Italic Capital Beta' },
+            { symbol: '𝛤', name: 'Mathematical Italic Capital Gamma' },
+            { symbol: '𝛥', name: 'Mathematical Italic Capital Delta' },
+            { symbol: '𝛦', name: 'Mathematical Italic Capital Epsilon' },
+            { symbol: '𝛼', name: 'Mathematical Italic Small Alpha' },
+            { symbol: '𝛽', name: 'Mathematical Italic Small Beta' },
+            { symbol: '𝛾', name: 'Mathematical Italic Small Gamma' },
+            { symbol: '𝛿', name: 'Mathematical Italic Small Delta' },
+            { symbol: '𝜀', name: 'Mathematical Italic Small Epsilon' },
+            { symbol: '𝜜', name: 'Mathematical Bold Italic Capital Alpha' },
+            { symbol: '𝜝', name: 'Mathematical Bold Italic Capital Beta' },
+            { symbol: '𝜞', name: 'Mathematical Bold Italic Capital Gamma' },
+            { symbol: '𝜶', name: 'Mathematical Bold Italic Small Alpha' },
+            { symbol: '𝜷', name: 'Mathematical Bold Italic Small Beta' },
+            { symbol: '𝝖', name: 'Mathematical Sans-Serif Bold Capital Alpha' },
+            { symbol: '𝝗', name: 'Mathematical Sans-Serif Bold Capital Beta' },
+            { symbol: 'Gamma', name: 'Mathematical Sans-Serif Bold Capital Gamma' },
+            { symbol: '𝝰', name: 'Mathematical Sans-Serif Bold Small Alpha' },
+            { symbol: '𝝱', name: 'Mathematical Sans-Serif Bold Small Beta' },
+            { symbol: '⨽', name: 'Not Equivalent To (variant)' },
+            { symbol: '⩵', name: 'Equals Sign Above Less-Than Sign' },
+            { symbol: '?', name: 'Question Mark' },
+            { symbol: '@', name: 'At the rate' },
+            { symbol: '#', name: 'Hashtag' },
+            { symbol: '%', name: 'Percent' },
+            { symbol: '^', name: 'Upper Square Arrow' },
+            { symbol: '&', name: 'And sign' },
+            { symbol: '\\', name: 'Double Back Slash' },
+            { symbol: "'", name: 'Apostrophe Sign' },
+            { symbol: '"', name: 'Double Apostrophe Sign' },
+            { symbol: '⩶', name: 'Equals Sign Above Greater-Than Sign' },
+            { symbol: '⩷', name: 'Less-Than Or Slanted Equal To' },
+            { symbol: '⩸', name: 'Greater-Than Or Slanted Equal To' },
+            { symbol: '⪅', name: 'Less-Than Or Slanted Equal To With Dot Inside' },
+            { symbol: '⪆', name: 'Greater-Than Or Slanted Equal To With Dot Inside' },
+            { symbol: '⪉', name: 'Less-Than Above Double-Line Equal Above Greater-Than' },
+            { symbol: '⪊', name: 'Greater-Than Above Double-Line Equal Above Less-Than' },
+            { symbol: '⩽', name: 'Less-Than Above Slanted Equal' },
+            { symbol: '⩾', name: 'Greater-Than Above Slanted Equal' },
+            { symbol: '⪕', name: 'Slanted Equal To Or Less-Than' },
+            { symbol: '⪖', name: 'Slanted Equal To Or Greater-Than' },
+            { symbol: '⪛', name: 'Double-Line Slanted Less-Than Or Equal To' },
+            { symbol: '⪜', name: 'Double-Line Slanted Greater-Than Or Equal To' },
+            { symbol: '⪯', name: 'Precedes Above Single-Line Equals Sign' },
+            { symbol: '⪰', name: 'Succeeds Above Single-Line Equals Sign' },
+            { symbol: 'Subset', name: 'Subset Of Above Equals Sign' },
+            { symbol: 'Superset', name: 'Superset Of Above Equals Sign' },
+            { symbol: '⫋', name: 'Subset Of Above Not Equal To' },
+            { symbol: '⫌', name: 'Superset Of Above Not Equal To' },
+            { symbol: '⟇', name: 'Or With Dot Inside' },
+            { symbol: '⟈', name: 'Reverse Solidus Preceding Subset' },
+            { symbol: '⟉', name: 'Superset Preceding Solidus' },
+            { symbol: '⟊', name: 'Vertical Bar With Horizontal Stroke' },
+            { symbol: '⟌', name: 'Mathematical Rising Diagonal' },
+            { symbol: '⟍', name: 'Mathematical Falling Diagonal' },
+            { symbol: '⟐', name: 'White Diamond with Centred Dot' },
+            { symbol: '⟘', name: 'Long Right Tack' },
+            { symbol: '⟙', name: 'Long Left Tack' },
+            { symbol: '⟠', name: 'Lozenge Divided By Horizontal Rule' },
+            { symbol: '⟰', name: 'Upwards Quadruple Arrow' },
+            { symbol: '⟱', name: 'Downwards Quadruple Arrow' },
+            { symbol: '⟸', name: 'Long Leftwards Double Arrow' },
+            { symbol: '⟻', name: 'Long Leftwards Arrow From Bar' },
+            { symbol: '⟼', name: 'Long Rightwards Arrow From Bar' },
+            { symbol: '⟽', name: 'Long Leftwards Double Arrow From Bar' },
+            { symbol: '⟾', name: 'Long Rightwards Double Arrow From Bar' },
+            { symbol: '⟿', name: 'Long Rightwards Squiggly Arrow' },
+            { symbol: '⤆', name: 'Leftwards Two-Headed Arrow From Bar' },
+            { symbol: '⤇', name: 'Upwards Two-Headed Arrow From Bar' },
+            { symbol: '⤒', name: 'Upwards Arrow To Bar' },
+            { symbol: '⤓', name: 'Downwards Arrow To Bar' },
+            { symbol: '⥓', name: 'Rightwards Arrow To Bar' },
+            { symbol: '⤔', name: 'Leftwards Arrow With Tail' },
+            { symbol: '⤕', name: 'Rightwards Arrow With Tail' },
+            { symbol: '⤖', name: 'Rightwards Two-Headed Arrow With Tail' },
+            { symbol: '⤙', name: 'Leftwards Arrow-Tail' },
+            { symbol: '⤚', name: 'Rightwards Arrow-Tail' },
+            { symbol: '⤛', name: 'Leftwards Double Arrow-Tail' },
+            { symbol: '⤜', name: 'Rightwards Double Arrow-Tail' },
+            { symbol: '⤧', name: 'Bendy Arrow Pointing Downwards Then Rightwards' },
+            { symbol: '⤨', name: 'Bendy Arrow Pointing Downwards Then Leftwards' },
+            { symbol: '⤥', name: 'Arrow Pointing Downwards Then Curling Leftwards' },
+            { symbol: '⤦', name: 'Arrow Pointing Downwards Then Curling Rightwards' },
+            { symbol: '⤣', name: 'Right-Side Arc Clockwise Arrow' },
+            { symbol: '⤤', name: 'Left-Side Arc Anticlockwise Arrow' },
+            { symbol: '⥁', name: 'Anticlockwise Closed Circle Arrow' },
+            { symbol: '⥴', name: 'Rightwards Harpoon With Barb Down To Bar' },
+            { symbol: '⥵', name: 'Leftwards Harpoon With Barb Down To Bar' },
+            { symbol: '⥼', name: 'Left Barb Up Right Barb Down Harpoon' },
+            { symbol: '⥽', name: 'Left Barb Down Right Barb Up Harpoon' },
+            { symbol: '⥾', name: 'Up Barb Right Down Barb Left Harpoon' },
+            { symbol: '⥿', name: 'Up Barb Left Down Barb Right Harpoon' },
+            { symbol: '⦇', name: 'Z Notation Left Image Bracket' },
+            { symbol: '⦈', name: 'Z Notation Right Image Bracket' },
+            { symbol: '⦉', name: 'Z Notation Left Binding Bracket' },
+            { symbol: '⦊', name: 'Z Notation Right Binding Bracket' },
+            { symbol: '⦏', name: 'Left Square Bracket With Underbar' },
+            { symbol: '⦐', name: 'Right Square Bracket With Underbar' },
+            { symbol: '⦓', name: 'Left Bracket With Tick In Top Corner' },
+            { symbol: '⦔', name: 'Right Bracket With Tick In Bottom Corner' },
+            { symbol: '⦗', name: 'Left Angle Bracket With Dot' },
+            { symbol: '⦘', name: 'Right Angle Bracket With Dot' },
+            { symbol: '⧀', name: 'Circled Less-Than' },
+            { symbol: '⧁', name: 'Circled Greater-Than' },
+            { symbol: '⧄', name: 'Squared Rising Diagonal Slash' },
+            { symbol: '⧅', name: 'Squared Falling Diagonal Slash' },
+            { symbol: '⧎', name: 'Squared Asterisk' },
+            { symbol: '⧏', name: 'Squared Small Circle' },
+            { symbol: '⧐', name: 'Triangle With Dot Above' },
+            { symbol: '⧑', name: 'Triangle With Underbar' },
+            { symbol: '⧒', name: 'S In Triangle' },
+            { symbol: '⧓', name: 'Triangle With Serifs At Bottom' },
+            { symbol: '⧬', name: 'Not Parallel To Or Equal To' },
+            { symbol: '⧭', name: 'Not Perpendicular To' },
+            { symbol: '⨟', name: 'Z Notation Relational Composition' },
+            { symbol: '⫴', name: 'Triple Vertical Bar Binary Relation' },
+            { symbol: '⫵', name: 'Triple Colon Operator' },
+            { symbol: '⫶', name: 'Dotted Colon' },
+        ];
+        const toSuperscriptMap = { '0': '⁰', '1': '¹', '2': '²', '3': '³', '4': '⁴', '5': '⁵', '6': '⁶', '7': '⁷', '8': '⁸', '9': '⁹', 'a': 'ᵃ', 'b': 'ᵇ', 'c': 'ᶜ', 'd': 'ᵈ', 'e': 'ᵉ', 'f': 'ᶠ', 'g': 'ᵍ', 'h': 'ʰ', 'i': 'ⁱ', 'j': 'ʲ', 'k': 'ᵏ', 'l': 'ˡ', 'm': 'ᵐ', 'n': 'ⁿ', 'o': 'ᵒ', 'p': 'ᵖ', 'q': '۹', 'r': 'ʳ', 's': 'ˢ', 't': 'ᵗ', 'u': 'ᵘ', 'v': 'ᵛ', 'w': 'ʷ', 'x': 'ˣ', 'y': 'ʸ', 'z': 'ᶻ', 'A': 'ᴬ', 'B': 'ᴮ', 'C': 'ꟲ', 'D': 'ᴰ', 'E': 'ᴱ', 'F': 'ꟳ', 'G': 'ᴳ', 'H': 'ᴴ', 'I': 'ᴵ', 'J': 'ᴶ', 'K': 'ᴷ', 'L': 'ᴸ', 'M': 'ᴹ', 'N': 'ᴺ', 'O': 'ᴼ', 'P': 'ᴾ', 'Q': 'Q', 'R': 'ᴿ', 'S': 'ˢ', 'T': 'ᵀ', 'U': 'ᵁ', 'V': 'ⱽ', 'W': 'ᵂ', 'X': 'ˣ', 'Y': 'ʸ', 'Z': 'ᶻ', '+': '⁺', '-': '⁻', '=': '⁼', '(': '⁽', ')': '⁾', 'α': 'ᵅ', 'β': 'ᵝ', 'γ': 'ᵞ', 'δ': 'ᵟ', 'ε': 'ᵋ', 'θ': 'ᶿ', 'φ': 'ᵠ', 'χ': 'ᵡ', '.': '˙', ',': 'ʻ' };
+        const toSubscriptMap = { '0': '₀', '1': '₁', '2': '₂', '3': '₃', '4': '₄', '5': '₅', '6': '₆', '7': '₇', '8': '₈', '9': '₉', 'a': 'ₐ', 'e': 'ₑ', 'h': 'ₕ', 'i': 'ᵢ', 'j': 'ⱼ', 'k': 'ₖ', 'l': 'ₗ', 'm': 'ₘ', 'n': 'ₙ', 'o': 'ₒ', 'p': 'ₚ', 'r': 'ᵣ', 's': 'ₛ', 't': 'ₜ', 'u': 'ᵤ', 'v': 'ᵥ', 'x': 'ₓ', '+': '₊', '-': '₋', '=': '₌', '(': '₍', ')': '₎', 'β': 'ᵦ', 'γ': 'ᵧ', 'ρ': 'ᵨ', 'φ': 'ᵩ', 'χ': 'ᵪ' };
+
+        const symbolGrid = document.getElementById('symbolGrid');
+        const searchBar = document.getElementById('searchBar');
+        const noResultsMessage = document.getElementById('noResultsMessage');
+        const copyNotification = document.getElementById('copyNotification');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const converterInput = document.getElementById('converterInput');
+        const convertToSuperscriptBtn = document.getElementById('convertToSuperscript');
+        const convertToSubscriptBtn = document.getElementById('convertToSubscript');
+        const converterOutput = document.getElementById('converterOutput');
+        const copyConverterOutputBtn = document.getElementById('copyConverterOutput');
+        const themeToggleCheckbox = document.getElementById('themeToggleCheckbox');
+        const converterNote = document.getElementById('converterNote');
+        const resetButton = document.getElementById('resetButton');
+        const favoritesToggleButton = document.getElementById('favoritesToggleButton');
+
+        let notificationTimeout;
+        let processedSymbols = [];
+        let favorites = [];
+        let isFavoritesViewActive = false;
+
+        function applyTheme(theme) {
+            if (theme === 'dark') {
+                document.documentElement.classList.add('dark');
+                themeToggleCheckbox.checked = true;
+            } else {
+                document.documentElement.classList.remove('dark');
+                themeToggleCheckbox.checked = false;
+            }
+        }
+
+        function renderAllSymbols() {
+            const fragment = document.createDocumentFragment();
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('is-visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { rootMargin: "0px 0px -50px 0px" });
+
+            processedSymbols.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'symbol-card p-3 rounded-lg shadow-lg flex flex-col items-center text-center justify-between h-full';
+                card.dataset.search = item.searchableString;
+                card.dataset.symbol = item.symbol;
+
+                const isFavorited = favorites.includes(item.symbol);
+
+                card.innerHTML = `
+                    <button class="favorite-btn ${isFavorited ? 'favorited' : ''}" aria-label="Toggle Favorite">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor" stroke-width="1"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+                    </button>
+                    <div class="symbol-display">${item.symbol}</div>
+                    <p class="text-sm font-medium text-indigo-700 break-words mt-2">${item.name}</p>
+                    <button class="copy-button action-button mt-4 bg-indigo-500 hover:bg-indigo-600 text-white text-xs font-base py-1.5 px-3 rounded-md flex items-center justify-center w-full max-w-xs">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="mr-1.5"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>Copy
+                    </button>
+                `;
+                card.querySelector('.copy-button').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    copyToClipboard(item.symbol);
+                });
+                card.querySelector('.favorite-btn').addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    handleFavoriteClick(item.symbol, e.currentTarget);
+                });
+                fragment.appendChild(card);
+                observer.observe(card);
+            });
+
+            symbolGrid.appendChild(fragment);
+            loadingIndicator.style.opacity = '0';
+            setTimeout(() => loadingIndicator.classList.add('hidden'), 300);
+        }
+        
+        function filterSymbols() {
+            const query = searchBar.value.toLowerCase().trim();
+            const cards = symbolGrid.children;
+            let visibleCount = 0;
+
+            for (const card of cards) {
+                const isSearchMatch = card.dataset.search.includes(query);
+                const isFavoriteMatch = !isFavoritesViewActive || favorites.includes(card.dataset.symbol);
+                const isVisible = isSearchMatch && isFavoriteMatch;
+                
+                card.classList.toggle('hidden', !isVisible);
+                if (isVisible) visibleCount++;
+            }
+
+            noResultsMessage.classList.toggle('hidden', visibleCount > 0);
+        }
+
+        function handleFavoriteClick(symbol, buttonElement) {
+            const index = favorites.indexOf(symbol);
+            if (index > -1) {
+                favorites.splice(index, 1);
+                buttonElement.classList.remove('favorited');
+            } else {
+                favorites.push(symbol);
+                buttonElement.classList.add('favorited');
+            }
+            localStorage.setItem('favorites', JSON.stringify(favorites));
+            if (isFavoritesViewActive) {
+                filterSymbols();
+            }
+        }
+
+        function copyToClipboard(text) {
+            if (!text || text.trim() === '') {
+                showNotification("Nothing to copy", true);
+                return;
+            }
+            const successMessage = "Copied";
+            navigator.clipboard.writeText(text).then(() => {
+                showNotification(successMessage);
+            }).catch(err => {
+                console.error('Clipboard API failed, trying fallback: ', err);
+                const textArea = document.createElement("textarea");
+                textArea.value = text;
+                textArea.style.position = "fixed";
+                textArea.style.left = "-9999px";
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                    showNotification(successMessage);
+                } catch (e) {
+                    console.error('Fallback copy failed: ', e);
+                    showNotification('Failed to copy text.', true);
+                }
+                document.body.removeChild(textArea);
+            });
+        }
+
+        function showNotification(message, isError = false) {
+            clearTimeout(notificationTimeout);
+            
+            const successColor = 'bg-red-600';
+            const errorColor = 'bg-red-700';
+            const icon = isError 
+                ? `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>`
+                : `<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>`;
+
+            copyNotification.innerHTML = `${icon}<span>${message}</span>`;
+            copyNotification.className = `flex items-center justify-center text-white text-sm font-semibold py-2 px-4 rounded-lg shadow-lg ${isError ? errorColor : successColor}`;
+            
+            copyNotification.classList.add('notification-fade');
+            copyNotification.classList.remove('hidden');
+            
+            notificationTimeout = setTimeout(() => {
+                copyNotification.classList.add('hidden');
+                copyNotification.classList.remove('notification-fade');
+            }, 2900);
+        }
+
+        function convertText(inputText, map) {
+            const unconvertedChars = new Set();
+            const convertedString = inputText.split('').map(char => {
+                if (map[char]) {
+                    return map[char];
+                } else {
+                    if (char.trim() !== '') unconvertedChars.add(char);
+                    return char;
+                }
+            }).join('');
+            return { convertedString, unconvertedChars: Array.from(unconvertedChars) };
+        }
+
+        function handleConversion(map) {
+            const { convertedString, unconvertedChars } = convertText(converterInput.value, map);
+            converterOutput.textContent = convertedString;
+            converterOutput.classList.remove('result-visible');
+            void converterOutput.offsetWidth;
+            converterOutput.classList.add('result-visible');
+            if (unconvertedChars.length > 0) {
+                converterNote.textContent = `Note: Could not convert: ${unconvertedChars.join(', ')}`;
+            } else {
+                converterNote.textContent = '';
+            }
+        }
+
+        themeToggleCheckbox.addEventListener('change', () => {
+            const newTheme = themeToggleCheckbox.checked ? 'dark' : 'light';
+            applyTheme(newTheme);
+            localStorage.setItem('theme', newTheme);
+        });
+
+        searchBar.addEventListener('input', filterSymbols);
+
+        convertToSuperscriptBtn.addEventListener('click', () => handleConversion(toSuperscriptMap));
+        convertToSubscriptBtn.addEventListener('click', () => handleConversion(toSubscriptMap));
+        copyConverterOutputBtn.addEventListener('click', () => copyToClipboard(converterOutput.textContent));
+        
+        resetButton.addEventListener('click', () => {
+            searchBar.value = '';
+            converterInput.value = '';
+            converterOutput.textContent = '';
+            converterNote.textContent = '';
+            isFavoritesViewActive = false;
+            favoritesToggleButton.classList.remove('active');
+            filterSymbols();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            searchBar.focus();
+        });
+
+        favoritesToggleButton.addEventListener('click', () => {
+            isFavoritesViewActive = !isFavoritesViewActive;
+            favoritesToggleButton.classList.toggle('active', isFavoritesViewActive);
+            filterSymbols();
+        });
+
+        document.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === '/') {
+                e.preventDefault();
+                searchBar.focus();
+                searchBar.select();
+            }
+        });
+
+        function initialize() {
+            const preferredTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+            applyTheme(preferredTheme);
+
+            const savedFavorites = localStorage.getItem('favorites');
+            if (savedFavorites) {
+                favorites = JSON.parse(savedFavorites);
+            }
+
+            processedSymbols = mathSymbols
+                .sort((a, b) => a.name.localeCompare(b.name))
+                .map(item => ({
+                    ...item,
+                    searchableString: `${item.symbol.toLowerCase()} ${item.name.toLowerCase()}`
+                }));
+            
+            renderAllSymbols();
+
+            searchBar.focus();
+        }
+
+        initialize();
+    });
+    </script>
+</body>
+</html>
